@@ -1,0 +1,4 @@
+rumps
+soco
+pyobjc
+py2app
