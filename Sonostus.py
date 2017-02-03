@@ -112,9 +112,19 @@ if __name__ == "__main__":
         app.update_zones_fork(None)
 
     app.zone = app.zones[0]
+    app.icon = 'images/sonos_icon.png'
     app.uri = None
 
     app.menu = [('Album info', []),
-                ('Zones',[])]
+                ('Zones',[]),
+                rumps.separator,
+                'Mute',
+                'Next',
+                'Previous',
+                'Pause/Play',
+                'Volume up',
+                'Volume down',
+                rumps.separator
+                ]
     app.update_zone_menu()
     app.run()
