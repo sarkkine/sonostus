@@ -2,16 +2,17 @@
 
 import json
 import os
-import pickle
 import threading
+
+from envparse import env
 
 import soco
 import rumps
 from rumps import MenuItem
 from soco import SoCo
 
+rumps.debug_mode(env.bool("DEBUG", default=False))
 
-#rumps.debug_mode(True)
 try:
     from urllib import urlretrieve
 except ImportError:
@@ -21,7 +22,7 @@ class SonostusApp(rumps.App):
     def update_zones(self):
         self.zones = list(soco.discover())
         try:
-            with app.open('zones.json', 'w') as f:
+            with self.open('zones.json', 'w') as f:
                 json.dump([{'ip_address': z.ip_address, 'player_name': z.player_name} for z in self.zones], f)
         except:
             pass
@@ -53,23 +54,20 @@ class SonostusApp(rumps.App):
 
     @rumps.timer(2)
     def update_title(self,_):
-        def foo():
-            pass
         track = self.zone.group.coordinator.get_current_track_info()
         title = "%s: %s" % (track['artist'], track['title'])
         album = track['album']
         uri = track['album_art']
-        print ('uri', uri)
         if not (self.title and self.title == title):
             self.title = None
             self.title = title
         if uri and not self.uri == title:
             self.uri = uri
-            filename = os.path.join(rumps.application_support(app.name), 'track.jpeg')
+            filename = os.path.join(rumps.application_support(self.name), 'track.jpeg')
             urlretrieve (uri, filename)
             if self.menu['Album info']:
                 self.menu['Album info'].clear()
-            art = MenuItem(album, icon=filename, dimensions=[256, 256], callback=foo)
+            art = MenuItem(album, icon=filename, dimensions=[256, 256], callback=lambda x: None)
             self.menu['Album info'].update(art)
         self.menu['Mute'].state = 1 if self.zone.mute else 0
 
@@ -108,9 +106,7 @@ if __name__ == "__main__":
     try:
         with app.open('zones.json', 'r') as f:
             j = json.load(f)
-            print j
             app.zones = [SoCo(z['ip_address']) for z in j]
-            print app.zones
     except Exception as e:
         app.zones = [SoCo('10.0.1.2'), SoCo('10.0.1.11')]
         app.update_zones_fork(None)
@@ -121,5 +117,4 @@ if __name__ == "__main__":
     app.menu = [('Album info', []),
                 ('Zones',[])]
     app.update_zone_menu()
-
     app.run()
